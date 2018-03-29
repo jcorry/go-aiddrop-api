@@ -1,0 +1,4 @@
+conf/app.conf
+test-results/
+tmp/
+routes/
