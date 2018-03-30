@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"aiddrop-api/app/models"
-	"encoding/json"
+	"net/http"
+	"time"
 
 	"github.com/revel/revel"
 )
@@ -19,19 +20,23 @@ type ReportsError struct {
 
 // Create is the createResource handler
 func (c ReportsCtrl) Create() revel.Result {
-	if report, err := c.parseReport(); err != nil {
-		return c.RenderJSON(ReportsError{Message: "Unable to parse report from JSON."})
+	report := c.parseReport()
+	report.Created = time.Now().Unix()
+
+	log := c.Log.New("method", "ReportsCtrl.Create")
+
+	// Validate the model
+	report.Validate(c.Validation)
+	if c.Validation.HasErrors() {
+		if revel.DevMode {
+			log.Debugf("%v", report)
+		}
+		return c.RenderJSON(c.Validation.Errors)
 	} else {
-		// Validate the model
-		report.Validate(c.Validation)
-		if c.Validation.HasErrors() {
-			return c.RenderJSON(c.Validation.Errors)
+		if err := c.Txn.Insert(&report); err != nil {
+			return c.RenderJSON(ReportsError{Message: err.Error()})
 		} else {
-			if err := c.Txn.Insert(&report); err != nil {
-				return c.RenderJSON(ReportsError{Message: err.Error()})
-			} else {
-				return c.RenderJSON(report)
-			}
+			return c.RenderJSON(report)
 		}
 	}
 }
@@ -48,17 +53,31 @@ func (c ReportsCtrl) Get(id int64) revel.Result {
 }
 
 // List is the listResource handler
-func (r ReportsCtrl) List() revel.Result {
+func (c ReportsCtrl) List() revel.Result {
+	lastId := parseIntOrDefault(c.Params.Get("lid"), -1)
+	limit := parseUintOrDefault(c.Params.Get("limit"), uint64(25))
+	reports, err := c.Txn.Select(models.Report{},
+		`SELECT * FROM Report WHERE id > ? LIMIT ?`, lastId, limit)
 
+	if err != nil {
+		return c.RenderJSON(ReportsError{Message: err.Error()})
+	}
+
+	return c.RenderJSON(reports)
 }
 
-func (r ReportsCtrl) Delete() revel.Result {
-
+// Delete is the deleteResource handler
+func (c ReportsCtrl) Delete(id int64) revel.Result {
+	success, err := c.Txn.Delete(&models.Report{ID: id})
+	if err != nil || success == 0 {
+		return c.RenderJSON(ReportsError{Message: "Failed to delete report."})
+	}
+	c.Response.Status = http.StatusNoContent
+	return c.Render()
 }
 
-// Report request parser
-func (c ReportsCtrl) parseReport() (models.Report, error) {
+func (c ReportsCtrl) parseReport() models.Report {
 	report := models.Report{}
-	err := json.NewDecoder(c.Request.GetBody()).Decode(&report)
-	return report, err
+	c.Params.BindJSON(&report)
+	return report
 }

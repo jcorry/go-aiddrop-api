@@ -11,6 +11,7 @@ type Report struct {
 	Longitude       float64 `db:"longitude" json:"longitude"`
 	Description     string  `db:"description" json:"description"`
 	RecipientsCount int64   `db:"recipients_count" json:"recipientsCount"`
+	Created         int64   `db:"created" json:"created"`
 }
 
 // Validate will validate the Report struct
@@ -24,8 +25,5 @@ func (r *Report) Validate(v *revel.Validation) {
 		revel.ValidRange(-180, 180))
 
 	v.Check(r.Description,
-		revel.ValidLength(255))
-
-	v.Check(r.RecipientsCount,
-		revel.ValidMax(10))
+		revel.ValidMaxSize(255))
 }

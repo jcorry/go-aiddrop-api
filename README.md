@@ -33,7 +33,6 @@ The directory structure of a generated Revel application:
 
     tests/            Test suites
 
-
 ## Help
 
 * The [Getting Started with Revel](http://revel.github.io/tutorial/gettingstarted.html).
