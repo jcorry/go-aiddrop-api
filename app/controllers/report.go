@@ -21,7 +21,7 @@ type ReportsError struct {
 // Create is the createResource handler
 func (c ReportsCtrl) Create() revel.Result {
 	report := c.parseReport()
-	report.Created = time.Now().Unix()
+	report.Created = time.Now()
 
 	log := c.Log.New("method", "ReportsCtrl.Create")
 
