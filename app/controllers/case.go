@@ -74,6 +74,7 @@ func (c CasesCtrl) List() revel.Result {
 
 	if len(reports) == 0 {
 		c.Response.Status = http.StatusNoContent
+		c.Response.ContentType = "application/json"
 		return c.Render()
 	}
 

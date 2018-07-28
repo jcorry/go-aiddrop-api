@@ -1,17 +1,19 @@
 package models
 
 import (
+	"time"
+
 	"github.com/revel/revel"
 )
 
 // Report represents a user report of someone needing aid
 type Report struct {
-	ID              int64   `db:"id" json:"id"`
-	Latitude        float64 `db:"latitude" json:"latitude"`
-	Longitude       float64 `db:"longitude" json:"longitude"`
-	Description     string  `db:"description" json:"description"`
-	RecipientsCount int64   `db:"recipients_count" json:"recipientsCount"`
-	Created         int64   `db:"created" json:"created"`
+	ID              int64     `db:"id" json:"id"`
+	Latitude        float64   `db:"latitude" json:"latitude"`
+	Longitude       float64   `db:"longitude" json:"longitude"`
+	Description     string    `db:"description" json:"description"`
+	RecipientsCount int64     `db:"recipients_count" json:"recipientsCount"`
+	Created         time.Time `db:"created" json:"created"`
 }
 
 // Validate will validate the Report struct
