@@ -56,6 +56,9 @@ func (c CasesCtrl) List() revel.Result {
 	// Get all of the reports within that box
 	limit := 100
 
+	reportAgeMinutes := revel.Config.IntDefault("case.reportAge", 90)
+	reportAge := time.Now().Add(time.Duration(-reportAgeMinutes) * time.Minute)
+
 	var reports []models.Report
 	_, err := c.Txn.Select(&reports,
 		`SELECT * FROM Report 
@@ -65,7 +68,7 @@ func (c CasesCtrl) List() revel.Result {
 		AND longitude <= ?
 		AND created >= ?
 		ORDER BY id DESC
-		LIMIT ?`, requestData.MinLatitude, requestData.MaxLatitude, requestData.MinLongitude, requestData.MaxLongitude, (time.Now().Unix() - (60 * 60)), limit)
+		LIMIT ?`, requestData.MinLatitude, requestData.MaxLatitude, requestData.MinLongitude, requestData.MaxLongitude, reportAge, limit)
 
 	if err != nil {
 		c.Response.Status = http.StatusInternalServerError
